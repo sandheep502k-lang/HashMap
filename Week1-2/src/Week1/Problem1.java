@@ -1,40 +1,32 @@
 import java.util.*;
 
-class UsernameChecker {
+class Inventory {
 
-    private HashMap<String, Integer> users = new HashMap<>();
-    private HashMap<String, Integer> attempts = new HashMap<>();
+    private HashMap<String, Integer> stock = new HashMap<>();
+    private HashMap<String, Queue<Integer>> waitlist = new HashMap<>();
 
-    public boolean checkAvailability(String username) {
-        attempts.put(username, attempts.getOrDefault(username, 0) + 1);
-        return !users.containsKey(username);
+    public Inventory() {
+        stock.put("IPHONE15_256GB", 100);
+        waitlist.put("IPHONE15_256GB", new LinkedList<>());
     }
 
-    public void register(String username, int userId) {
-        users.put(username, userId);
+    public synchronized String purchase(String product, int userId) {
+        if (stock.get(product) > 0) {
+            stock.put(product, stock.get(product) - 1);
+            return "Success, remaining: " + stock.get(product);
+        } else {
+            waitlist.get(product).add(userId);
+            return "Added to waitlist #" + waitlist.get(product).size();
+        }
     }
 
-    public List<String> suggest(String username) {
-        List<String> res = new ArrayList<>();
-        for (int i = 1; i <= 3; i++)
-            res.add(username + i);
-        res.add(username.replace("_", "."));
-        return res;
-    }
-
-    public String getMostAttempted() {
-        return attempts.entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .get().getKey();
+    public int checkStock(String product) {
+        return stock.getOrDefault(product, 0);
     }
 
     public static void main(String[] args) {
-        UsernameChecker uc = new UsernameChecker();
-        uc.register("john_doe", 1);
-
-        System.out.println(uc.checkAvailability("john_doe"));
-        System.out.println(uc.checkAvailability("jane_smith"));
-        System.out.println(uc.suggest("john_doe"));
-        System.out.println(uc.getMostAttempted());
+        Inventory inv = new Inventory();
+        System.out.println(inv.checkStock("IPHONE15_256GB"));
+        System.out.println(inv.purchase("IPHONE15_256GB", 1));
     }
 }
